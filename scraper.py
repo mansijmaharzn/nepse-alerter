@@ -33,13 +33,6 @@ class CompanyDetailsScraper:
     
             td_text = td.get_text(strip=True)
             symbol_details.append(f"{th.text.strip()}: `{td_text}`")
-
-            # invalid symbl error to be handled
-            # if not td_text:
-            #     symbol_details.append("Invalid Symbol")
-            #     break
-            # else:
-            #     symbol_details.append(f"{th.text.strip()}: `{td_text}`")
         
         return symbol_details
     
