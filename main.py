@@ -1,6 +1,7 @@
 import os
 import telebot
 import asyncio
+import json
 from scraper import CompanyDetailsScraper
 
 
@@ -18,7 +19,82 @@ def send_welcome(message):
 
 
 # main functionalities
-def scraper_handler(message):
+def get_user_data():
+    with open('watchlist.json', 'r') as f:
+        users = json.load(f)
+
+    return users
+
+
+def open_account(user):
+    users = get_user_data()
+
+    if str(user.id) in users:
+        return False
+
+    else:
+        users[str(user.id)] = {}
+        users[str(user.id)]['userWatchList'] = []
+
+    with open('watchlist.json', 'w') as f:
+        json.dump(users, f, indent=4)
+
+    return True
+
+
+def add_symbol_to_watchlist(message):
+    add_symbol = message.text.upper()
+    symbol_details = scraper.scrape_company_details(add_symbol)
+
+    if symbol_details['result']:
+        # message.from_user.first_name
+        # message.from_user.last_name
+        # message.from_user.username
+        user = message.from_user
+
+        if open_account(user):
+            text = "Welcome 👋! Your account has been created successfully."
+            bot.send_message(message.chat.id, text)
+
+        users = get_user_data()
+
+        text = f"At what price should I notify 🔔 about this company?\n*Current Market Price*: `{symbol_details['market_price']}`\nExample: `500`, `500.67`\n*Only numbers*"
+        notify_price = bot.send_message(message.chat.id, text, parse_mode="Markdown")
+        
+        # Now we need to wait for the user's response to get the notify_price
+        @bot.message_handler(func=lambda m: m.from_user.id == message.from_user.id)
+        def handle_notify_price(message):
+            try:
+                # Convert the user's response to a float
+                notify_price_value = float(message.text)
+
+                object_to_add = {
+                    "company_name": symbol_details['company_full_name'],
+                    "company_symbol": add_symbol,
+                    "notify_price": notify_price_value,
+                    "notified": False
+                }
+
+                users[str(user.id)]['userWatchList'].append(object_to_add)
+
+                with open('watchlist.json', 'w') as f:
+                    json.dump(users, f, indent=4)
+
+                text = f"Successfully added *{symbol_details['company_full_name']}* to your *Watch List*! ✅\nYou'll be notified when its price reaches around Rs. {notify_price_value}."
+                bot.send_message(message.chat.id, text, parse_mode="Markdown")
+
+            except ValueError:
+                bot.send_message(message.chat.id, "❌ Invalid price format! Please enter a valid number. Try Again.")
+
+
+        bot.register_next_step_handler(notify_price, handle_notify_price)
+
+    else:
+        text = "❌ *Invalid Symbol!*\nPlease send a valid Company Symbol"
+        bot.send_message(message.chat.id, text, parse_mode="Markdown")
+
+
+def send_company_details(message):
     query_symbol = message.text.upper()
     symbol_details = scraper.scrape_company_details(query_symbol)
 
@@ -46,11 +122,39 @@ def scraper_handler(message):
     bot.send_message(message.chat.id, symbol_message, parse_mode="Markdown")
 
 
-@bot.message_handler(commands=['search', 'get', 'show'])
+# command handlers
+@bot.message_handler(commands=['search', 'get'])
 def get_company_details(message):
-    text = "Send Company Symbol to get details of:\nExample: *GVL*, *NABIL*, *NIFRA*, *CITY*"
-    sent_msg = bot.send_message(message.chat.id, text, parse_mode="Markdown")
-    bot.register_next_step_handler(sent_msg, scraper_handler)
+    text = "Send Company Symbol to *Get Details* of:\nExample: *GVL*, *NABIL*, *NIFRA*, *CITY*"
+    query_symbol = bot.send_message(message.chat.id, text, parse_mode="Markdown")
+    bot.register_next_step_handler(query_symbol, send_company_details)
+
+
+@bot.message_handler(commands=['add'])
+def add_company_to_watchlist(message):
+    text = "Send Company Symbol to add in your *Watch List*:\nExample: *GVL*, *NABIL*, *NIFRA*, *CITY*"
+    add_symbol = bot.send_message(message.chat.id, text, parse_mode="Markdown")
+    bot.register_next_step_handler(add_symbol, add_symbol_to_watchlist)
+
+
+@bot.message_handler(commands=['list', 'watchlist'])
+def get_watchlist(message):
+    user = message.from_user
+
+    if open_account(user):
+        text = "Welcome 👋! Your account has been created successfully."
+        bot.send_message(message.chat.id, text)
+
+    users = get_user_data()
+
+    user_watchlist = users[str(user.id)]['userWatchList']
+
+    list_data = "*Your Watch List*"
+
+    for item in user_watchlist:
+        list_data += f"\n{item['company_name']}: `{item['notify_price']}`"
+
+    bot.send_message(message.chat.id, list_data, parse_mode="Markdown")
 
 
 print("Started...")
