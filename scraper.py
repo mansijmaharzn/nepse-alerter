@@ -18,11 +18,12 @@ class CompanyDetailsScraper:
             return None
     
     def parse_company_general_details(self, soup):
-        company_full_name = soup.find('h4', class_="company-inner-title")
-        company_full_name = f"*{company_full_name.get_text(strip=True)}*\n"
+        company_full_name = soup.find('h4', class_="company-inner-title").get_text(strip=True)
+        # company_full_name = company_full_name.get_text(strip=True)
         tbodies = soup.find_all('tbody')
         
-        symbol_details = [company_full_name]
+        symbol_details = {'result': True, 'company_full_name': company_full_name}
+        emptyCount = 0
         for tbody in tbodies:
             tr = tbody.find('tr')
             th = tr.find('th') # heading
@@ -30,10 +31,18 @@ class CompanyDetailsScraper:
     
             if th.text.strip() == "% Dividend":
                 break
-    
+            
             td_text = td.get_text(strip=True)
-            symbol_details.append(f"{th.text.strip()}: `{td_text}`")
+            
+            if td_text:
+                emptyCount += 1
+
+            symbol_details[th.text.strip().lower().replace(' ', '_')] = td_text
+            # symbol_details.append(f"{th.text.strip()}: `{td_text}`")
         
+        if emptyCount == 0:
+            symbol_details['result'] = False
+
         return symbol_details
     
     def scrape_company_details(self, query_symbol):
