@@ -2,6 +2,7 @@ import os
 import telebot
 import asyncio
 import json
+import threading
 from scraper import CompanyDetailsScraper
 
 
@@ -157,5 +158,33 @@ def get_watchlist(message):
     bot.send_message(message.chat.id, list_data, parse_mode="Markdown")
 
 
-print("Started...")
-asyncio.run(bot.polling())
+# Function to be executed at specific intervals
+def run_at_interval():
+    chat_id = 1314897970 # Replace with the actual chat ID you want to send messages to
+    bot.send_message(chat_id, "This is a message sent at a specific interval!")
+
+    # Adjust the interval_seconds to your desired time (in seconds)
+    interval_seconds = 10 # in seconds
+
+    # Schedule the next run of the function
+    timer = threading.Timer(interval_seconds, run_at_interval)
+    timer.daemon = True
+    timer.start()
+
+
+def start_bot():
+    bot.polling()
+
+
+if __name__ == '__main__':
+    # Start the bot in a separate thread
+    bot_thread = threading.Thread(target=start_bot)
+    bot_thread.daemon = True
+    bot_thread.start()
+
+    # Schedule the first run of the function
+    run_at_interval()
+    
+    # Keep the main thread alive
+    while True:
+        pass
