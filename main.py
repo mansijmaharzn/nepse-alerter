@@ -3,6 +3,7 @@ import telebot
 import asyncio
 import json
 import threading
+import math
 from scraper import CompanyDetailsScraper
 
 
@@ -159,15 +160,33 @@ def get_watchlist(message):
 
 
 # Function to be executed at specific intervals
-def run_at_interval():
-    chat_id = 1314897970 # Replace with the actual chat ID you want to send messages to
-    bot.send_message(chat_id, "This is a message sent at a specific interval!")
+def watchlist_checker():
+    users = get_user_data()
+
+    for user in users:
+        user_watchlist = users[user]['userWatchList']
+        index = 0
+        for company in user_watchlist:
+            if not company["notified"]:
+                symbol_details = scraper.scrape_company_details(company['company_symbol'])
+
+                if math.isclose(float(symbol_details['market_price']), company['notify_price'], abs_tol=5):
+                    users[user]['userWatchList'].pop(index)
+
+                    with open('watchlist.json', 'w') as f:
+                        json.dump(users, f, indent=4)
+
+                    text = f"{symbol_details['company_full_name']} has reached close to your target price: {symbol_details['market_price']}"
+                    bot.send_message(user, text)
+            
+            index += 1
+
 
     # Adjust the interval_seconds to your desired time (in seconds)
-    interval_seconds = 10 # in seconds
+    interval_seconds = 300 # in seconds
 
     # Schedule the next run of the function
-    timer = threading.Timer(interval_seconds, run_at_interval)
+    timer = threading.Timer(interval_seconds, watchlist_checker)
     timer.daemon = True
     timer.start()
 
@@ -183,7 +202,7 @@ if __name__ == '__main__':
     bot_thread.start()
 
     # Schedule the first run of the function
-    run_at_interval()
+    watchlist_checker()
     
     # Keep the main thread alive
     while True:
