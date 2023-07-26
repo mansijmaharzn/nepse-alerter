@@ -192,7 +192,7 @@ def watchlist_checker():
 
 
 def start_bot():
-    bot.polling()
+    asyncio.run(bot.polling())
 
 
 if __name__ == '__main__':
