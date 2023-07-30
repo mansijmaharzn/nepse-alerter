@@ -92,7 +92,7 @@ def add_symbol_to_watchlist(message):
         bot.register_next_step_handler(notify_price, handle_notify_price)
 
     else:
-        text = "❌ *Invalid Symbol!*\nPlease send a valid Company Symbol"
+        text = "❌ *Invalid Symbol!*\nPlease try again sending a *Valid Company Symbol*!"
         bot.send_message(message.chat.id, text, parse_mode="Markdown")
 
 
