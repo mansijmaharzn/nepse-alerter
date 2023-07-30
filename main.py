@@ -16,7 +16,7 @@ scraper = CompanyDetailsScraper()
 # replies for /start and /hello
 @bot.message_handler(commands=['start', 'hello'])
 def send_welcome(message):
-    text = "Howdy 👋, how are you doing?\nI'm *NEPSE-ALERTER*!\nMy god is *Sir Mansij Maharjan*"
+    text = "Howdy 👋, how are you doing?\nI'm *NEPSE-ALERTER*!\nHit that *hamburger* menu for my commands! 😜"
     bot.reply_to(message, text, parse_mode="Markdown")
 
 
