@@ -176,7 +176,8 @@ def watchlist_checker():
                     with open('watchlist.json', 'w') as f:
                         json.dump(users, f, indent=4)
 
-                    text = f"*{symbol_details['company_full_name']}* has reached close to your *Target Price*: `{company['notify_price']}`\n*Current Market Price*: `{symbol_details['market_price']}`"
+                    text = f"*{symbol_details['company_full_name']}* has reached close to your\
+                        *Target Price*: `{company['notify_price']}`\n*Current Market Price*: `{symbol_details['market_price']}`"
                     bot.send_message(user, text, parse_mode="Markdown")
             
             index += 1
