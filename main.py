@@ -82,7 +82,7 @@ def add_symbol_to_watchlist(message):
                 with open('watchlist.json', 'w') as f:
                     json.dump(users, f, indent=4)
 
-                text = f"Successfully added *{symbol_details['company_full_name']}* to your *Watch List*! ✅\nYou'll be notified when its price reaches around Rs. {notify_price_value}."
+                text = f"Successfully added *{symbol_details['company_full_name']}* to your *Watch List*! ✅\nYou'll be notified when its price reaches around *Rs. {notify_price_value}*."
                 bot.send_message(message.chat.id, text, parse_mode="Markdown")
 
             except ValueError:
@@ -94,6 +94,41 @@ def add_symbol_to_watchlist(message):
     else:
         text = "❌ *Invalid Symbol!*\nPlease try again sending a *Valid Company Symbol*!"
         bot.send_message(message.chat.id, text, parse_mode="Markdown")
+
+
+def delete_symbol_from_watchlist(message):
+    delete_symbol = message.text.upper()
+    symbol_details = scraper.scrape_company_details(delete_symbol)
+
+    if symbol_details['result']:
+        user = message.from_user
+
+        if open_account(user):
+            text = "Welcome 👋! Your account has been created successfully."
+            bot.send_message(message.chat.id, text)
+
+        users = get_user_data()
+
+        user_watchlist = users[str(user.id)]['userWatchList']
+
+        found = False
+        for watchlist in user_watchlist:
+            if watchlist['company_symbol'] == delete_symbol:
+                found = True
+                user_watchlist.remove(watchlist)
+
+        with open('watchlist.json', 'w') as f:
+            json.dump(users, f, indent=4)
+
+        if found:
+            text = f"Successfully removed *{symbol_details['company_full_name']}* from your *Watch List*! 🗑"
+        else:
+            text = f"❌ *Invalid Symbol!*\nDidn't find anything with {delete_symbol} in your *Watch List*! Please try again sending a *Valid Company Symbol*!"
+
+    else:
+        text = "❌ *Invalid Symbol!*\nPlease try again sending a *Valid Company Symbol*!"
+    
+    bot.send_message(message.chat.id, text, parse_mode="Markdown")
 
 
 def send_company_details(message):
@@ -139,6 +174,13 @@ def add_company_to_watchlist(message):
     bot.register_next_step_handler(add_symbol, add_symbol_to_watchlist)
 
 
+@bot.message_handler(commands=['delete'])
+def add_company_to_watchlist(message):
+    text = "Send Company Symbol to delete from your *Watch List*:\nExample: *GVL*, *NABIL*, *NIFRA*, *CITY*"
+    delete_symbol = bot.send_message(message.chat.id, text, parse_mode="Markdown")
+    bot.register_next_step_handler(delete_symbol, delete_symbol_from_watchlist)
+
+
 @bot.message_handler(commands=['list', 'watchlist'])
 def get_watchlist(message):
     user = message.from_user
@@ -151,7 +193,7 @@ def get_watchlist(message):
 
     user_watchlist = users[str(user.id)]['userWatchList']
 
-    list_data = "*Your Watch List*"
+    list_data = "*Your Watch List* 👀"
 
     for item in user_watchlist:
         list_data += f"\n{item['company_name']}: `{item['notify_price']}`"
