@@ -36,6 +36,7 @@ def open_account(user):
 
     else:
         users[str(user.id)] = {}
+        users[str(user.id)]['username'] = user.username
         users[str(user.id)]['userWatchList'] = []
 
     with open('watchlist.json', 'w') as f:
