@@ -194,10 +194,11 @@ def get_watchlist(message):
 
     user_watchlist = users[str(user.id)]['userWatchList']
 
-    list_data = "*Your Watch List* 👀"
+    list_data = "*Your Watch List* 👀\n"
 
     for item in user_watchlist:
-        list_data += f"\n{item['company_name']}: `{item['notify_price']}`"
+        symbol_details = scraper.scrape_company_details(item['company_symbol'])
+        list_data += f"\n*{item['company_name']}*: `{item['notify_price']}`\n*Current Price*: {symbol_details['market_price']}\n"
 
     bot.send_message(message.chat.id, list_data, parse_mode="Markdown")
 
