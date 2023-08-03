@@ -176,7 +176,7 @@ def add_company_to_watchlist(message):
 
 
 @bot.message_handler(commands=['delete'])
-def add_company_to_watchlist(message):
+def delete_company_from_watchlist(message):
     text = "Send Company Symbol to delete from your *Watch List*:\nExample: *GVL*, *NABIL*, *NIFRA*, *CITY*"
     delete_symbol = bot.send_message(message.chat.id, text, parse_mode="Markdown")
     bot.register_next_step_handler(delete_symbol, delete_symbol_from_watchlist)
