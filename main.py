@@ -160,19 +160,14 @@ def send_company_details(message):
     bot.send_message(message.chat.id, symbol_message, parse_mode="Markdown")
 
 
-def send_news(message, all_news=False):
+def send_news(message):
     latest_news = scraper.scrape_lastest_ipo_news()
 
     text = "❗️ *Upcoming IPO News*:"
-    if all_news:
-        for news in latest_news:
-            news_title = latest_news[news]["title"]
-            news_link = latest_news[news]["link"]
-            text += f"\n{news_title}\n[Full News Here]({news_link})\n"
-    else:
-        news_title = latest_news["news0"]["title"]
-        news_link = latest_news["news0"]["link"]
-        text += f"\n{news_title}\n[Full News Here]({news_link})"
+    for news in latest_news:
+        news_title = latest_news[news]["title"]
+        news_link = latest_news[news]["link"]
+        text += f"\n{news_title}\n[Full News Here]({news_link})\n"
 
     bot.send_message(message.chat.id, text, parse_mode="Markdown")
 
@@ -202,11 +197,6 @@ def delete_company_from_watchlist(message):
 @bot.message_handler(commands=['news'])
 def get_latest_news(message):
     send_news(message, all_news=False)
-
-
-@bot.message_handler(commands=['allnews'])
-def get_all_latest_news(message):
-    send_news(message, all_news=True)
 
 
 @bot.message_handler(commands=['list', 'watchlist'])
