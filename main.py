@@ -4,13 +4,13 @@ import asyncio
 import json
 import threading
 import math
-from scraper import CompanyDetailsScraper
+from scraper import MeroLaganiScraper
 
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
-scraper = CompanyDetailsScraper()
+scraper = MeroLaganiScraper()
 
 
 # replies for /start and /hello
@@ -180,6 +180,16 @@ def delete_company_from_watchlist(message):
     text = "Send Company Symbol to delete from your *Watch List*:\nExample: *GVL*, *NABIL*, *NIFRA*, *CITY*"
     delete_symbol = bot.send_message(message.chat.id, text, parse_mode="Markdown")
     bot.register_next_step_handler(delete_symbol, delete_symbol_from_watchlist)
+
+
+@bot.message_handler(commands=['news'])
+def get_latest_news(message):
+    latest_news = scraper.scrape_lastest_ipo_news()
+    news_title = latest_news["news0"]["title"]
+    news_link = latest_news["news0"]["link"]
+
+    text = f"{news_title}\n[Full News Here]({news_link})"
+    bot.send_message(message.chat.id, text, parse_mode="Markdown")
 
 
 @bot.message_handler(commands=['list', 'watchlist'])
