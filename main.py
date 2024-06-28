@@ -4,10 +4,12 @@ import asyncio
 import json
 import threading
 import math
+from dotenv import load_dotenv
 from scraper import MeroLaganiScraper
 
 
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
+load_dotenv()
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
 scraper = MeroLaganiScraper()
